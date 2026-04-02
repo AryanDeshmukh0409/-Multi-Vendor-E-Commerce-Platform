@@ -1,0 +1,241 @@
+version: '3.9'
+
+x-common-env: &common-env
+  NODE_ENV: development
+  JWT_SECRET: ${JWT_SECRET}
+
+x-restart: &restart
+  restart: unless-stopped
+
+services:
+
+  # ════════════════════════════════════════════
+  # DATABASES — one MongoDB per service
+  # ════════════════════════════════════════════
+  mongo-auth:
+    image: mongo:7
+    <<: *restart
+    volumes: [ mongo-auth-data:/data/db ]
+
+  mongo-seller:
+    image: mongo:7
+    <<: *restart
+    volumes: [ mongo-seller-data:/data/db ]
+
+  mongo-catalog:
+    image: mongo:7
+    <<: *restart
+    volumes: [ mongo-catalog-data:/data/db ]
+
+  mongo-inventory:
+    image: mongo:7
+    <<: *restart
+    volumes: [ mongo-inventory-data:/data/db ]
+
+  mongo-order:
+    image: mongo:7
+    <<: *restart
+    volumes: [ mongo-order-data:/data/db ]
+
+  mongo-payment:
+    image: mongo:7
+    <<: *restart
+    volumes: [ mongo-payment-data:/data/db ]
+
+  mongo-shipping:
+    image: mongo:7
+    <<: *restart
+    volumes: [ mongo-shipping-data:/data/db ]
+
+  mongo-review:
+    image: mongo:7
+    <<: *restart
+    volumes: [ mongo-review-data:/data/db ]
+
+  mongo-messaging:
+    image: mongo:7
+    <<: *restart
+    volumes: [ mongo-messaging-data:/data/db ]
+
+  mongo-analytics:
+    image: mongo:7
+    <<: *restart
+    volumes: [ mongo-analytics-data:/data/db ]
+
+  # ════════════════════════════════════════════
+  # SERVICES
+  # ════════════════════════════════════════════
+  auth-service:
+    build: ./auth-service
+    <<: *restart
+    ports: [ "4001:4001" ]
+    depends_on: [ mongo-auth ]
+    environment:
+      <<: *common-env
+      PORT: 4001
+      MONGO_URI: mongodb://mongo-auth:27017/auth-db
+
+  seller-service:
+    build: ./seller-service
+    <<: *restart
+    ports: [ "4002:4002" ]
+    depends_on: [ mongo-seller ]
+    environment:
+      <<: *common-env
+      PORT: 4002
+      MONGO_URI: mongodb://mongo-seller:27017/seller-db
+
+  catalog-service:
+    build: ./catalog-service
+    <<: *restart
+    ports: [ "4003:4003" ]
+    depends_on: [ mongo-catalog ]
+    environment:
+      <<: *common-env
+      PORT: 4003
+      MONGO_URI: mongodb://mongo-catalog:27017/catalog-db
+
+  inventory-service:
+    build: ./inventory-service
+    <<: *restart
+    ports: [ "4004:4004" ]
+    depends_on: [ mongo-inventory ]
+    environment:
+      <<: *common-env
+      PORT: 4004
+      MONGO_URI: mongodb://mongo-inventory:27017/inventory-db
+
+  order-service:
+    build: ./order-service
+    <<: *restart
+    ports: [ "4005:4005" ]
+    depends_on: [ mongo-order ]
+    environment:
+      <<: *common-env
+      PORT: 4005
+      MONGO_URI: mongodb://mongo-order:27017/order-db
+
+  payment-service:
+    build: ./payment-service
+    <<: *restart
+    ports: [ "4006:4006" ]
+    depends_on: [ mongo-payment ]
+    environment:
+      <<: *common-env
+      PORT: 4006
+      MONGO_URI: mongodb://mongo-payment:27017/payment-db
+
+  shipping-service:
+    build: ./shipping-service
+    <<: *restart
+    ports: [ "4007:4007" ]
+    depends_on: [ mongo-shipping ]
+    environment:
+      <<: *common-env
+      PORT: 4007
+      MONGO_URI: mongodb://mongo-shipping:27017/shipping-db
+
+  review-service:
+    build: ./review-service
+    <<: *restart
+    ports: [ "4008:4008" ]
+    depends_on: [ mongo-review ]
+    environment:
+      <<: *common-env
+      PORT: 4008
+      MONGO_URI: mongodb://mongo-review:27017/review-db
+      ORDER_SVC_URL: http://order-service:4005
+
+  messaging-service:
+    build: ./messaging-service
+    <<: *restart
+    ports: [ "4009:4009" ]
+    depends_on: [ mongo-messaging ]
+    environment:
+      <<: *common-env
+      PORT: 4009
+      MONGO_URI: mongodb://mongo-messaging:27017/messaging-db
+
+  search-service:
+    build: ./search-service
+    <<: *restart
+    ports: [ "4010:4010" ]
+    depends_on: [ mongo-catalog ]
+    environment:
+      <<: *common-env
+      PORT: 4010
+      MONGO_URI: mongodb://mongo-catalog:27017/catalog-db # shares catalog-db (read)
+
+  analytics-service:
+    build: ./analytics-service
+    <<: *restart
+    ports: [ "4011:4011" ]
+    depends_on: [ mongo-analytics ]
+    environment:
+      <<: *common-env
+      PORT: 4011
+      MONGO_URI: mongodb://mongo-analytics:27017/analytics-db
+
+  notification-service:
+    build: ./notification-service
+    <<: *restart
+    depends_on: [] # event-only, no HTTP port needed
+    environment:
+      <<: *common-env
+      SMTP_HOST: mailhog
+      SMTP_PORT: 1025
+      MAIL_FROM: noreply@multivendor.dev
+
+  # ── Dev mail catcher (MailHog) ────────────────
+  mailhog:
+    image: mailhog/mailhog
+    <<: *restart
+    ports:
+      - "1025:1025" # SMTP
+      - "8025:8025" # Web UI → http://localhost:8025
+
+  # ════════════════════════════════════════════
+  # API GATEWAY
+  # ════════════════════════════════════════════
+  api-gateway:
+    build: ./api-gateway
+    <<: *restart
+    ports: [ "3000:3000" ]
+    depends_on:
+      - auth-service
+      - seller-service
+      - catalog-service
+      - inventory-service
+      - order-service
+      - payment-service
+      - shipping-service
+      - review-service
+      - messaging-service
+      - search-service
+      - analytics-service
+    environment:
+      <<: *common-env
+      PORT: 3000
+      AUTH_SVC_URL: http://auth-service:4001
+      SELLER_SVC_URL: http://seller-service:4002
+      CATALOG_SVC_URL: http://catalog-service:4003
+      INVENTORY_SVC_URL: http://inventory-service:4004
+      ORDER_SVC_URL: http://order-service:4005
+      PAYMENT_SVC_URL: http://payment-service:4006
+      SHIPPING_SVC_URL: http://shipping-service:4007
+      REVIEW_SVC_URL: http://review-service:4008
+      MESSAGING_SVC_URL: http://messaging-service:4009
+      SEARCH_SVC_URL: http://search-service:4010
+      ANALYTICS_SVC_URL: http://analytics-service:4011
+
+volumes:
+  mongo-auth-data:
+  mongo-seller-data:
+  mongo-catalog-data:
+  mongo-inventory-data:
+  mongo-order-data:
+  mongo-payment-data:
+  mongo-shipping-data:
+  mongo-review-data:
+  mongo-messaging-data:
+  mongo-analytics-data:
