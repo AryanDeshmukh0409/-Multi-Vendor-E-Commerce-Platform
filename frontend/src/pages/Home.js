@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { catalogAPI, searchAPI } from '../api/services';
 import ProductCard from '../components/ProductCard';
+import { useNavigate } from 'react-router-dom';
 
 export default function Home() {
   const [products, setProducts]   = useState([]);
@@ -12,6 +13,7 @@ export default function Home() {
   const [facets, setFacets]       = useState(null);
   const [cart, setCart]           = useState([]);
   const [cartMsg, setCartMsg]     = useState('');
+  const navigate = useNavigate();
 
   // Load all products on mount
   useEffect(() => { fetchProducts(); }, []);
@@ -145,13 +147,14 @@ export default function Home() {
 
           {/* Cart notification */}
           {cartMsg && <div style={styles.cartMsg}>{cartMsg}</div>}
-
+          
+           
           {/* Cart summary */}
           {cart.length > 0 && (
             <div style={styles.cartBar}>
               🛒 {cart.reduce((s, i) => s + i.qty, 0)} items in cart —
               Total: ${(cart.reduce((s, i) => s + i.price * i.qty, 0) / 100).toFixed(2)}
-              <button style={styles.checkoutBtn} onClick={() => alert('Checkout coming soon!')}>
+              <button style={styles.checkoutBtn} onClick={() => navigate('/cart')}>
                 Checkout
               </button>
             </div>
