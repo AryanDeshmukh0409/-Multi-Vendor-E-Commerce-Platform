@@ -1,3 +1,10 @@
+const express = require('express');
+const cors = require('cors');
+const app = express();
+
+app.use(express.json());
+app.use(cors());
+
 const eventBus = require('../shared/events/eventBus');
 const notif = require('./controllers/notification.controller');
 require('dotenv').config();

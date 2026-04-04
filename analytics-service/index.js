@@ -1,4 +1,6 @@
 const express = require('express');
+const cors = require('cors');
+
 const mongoose = require('mongoose');
 require('dotenv').config();
 
@@ -66,6 +68,7 @@ eventBus.subscribe('order.cancelled', ({ payload }) => {
 const app = express();
 app.use(express.json());
 app.use('/analytics', analyticsRoutes);
+app.use(cors());
 app.use(errorHandler);
 
 mongoose.connect(process.env.MONGO_URI)

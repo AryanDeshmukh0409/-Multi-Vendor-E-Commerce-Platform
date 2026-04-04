@@ -1,4 +1,6 @@
 const express = require('express');
+const cors = require('cors');
+
 const http = require('http');
 const WebSocket = require('ws');
 const mongoose = require('mongoose');
@@ -88,6 +90,7 @@ wss.on('connection', (ws, req) => {
 
 // ── REST ──────────────────────────────────────
 app.use(express.json());
+app.use(cors());
 app.use('/messages', messagingRoutes);
 app.use(errorHandler);
 

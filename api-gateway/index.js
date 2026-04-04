@@ -8,6 +8,8 @@
 //  5. Reverse-proxy routing to downstream services
 
 const express = require('express');
+const cors = require('cors');
+
 const { createProxyMiddleware } = require('http-proxy-middleware');
 const rateLimit = require('express-rate-limit');
 const crypto = require('crypto');
@@ -77,6 +79,7 @@ function proxy(target, pathRewrite = {}) {
 // Auth — public (keep /auth; auth-service mounts router at /auth)
 app.use('/auth', proxy(SVC.auth, { '^/auth': '/auth' }));
 
+app.use(cors());
 
 // Catalog
 app.use('/catalog', (req, _res, next) => {
