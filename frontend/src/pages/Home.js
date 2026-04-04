@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useAuth } from '../context/AuthContext';
 import { catalogAPI, searchAPI } from '../api/services';
 import ProductCard from '../components/ProductCard';
 import { useNavigate } from 'react-router-dom';
@@ -14,6 +15,14 @@ export default function Home() {
   const [cart, setCart]           = useState([]);
   const [cartMsg, setCartMsg]     = useState('');
   const navigate = useNavigate();
+  const { user } = useAuth();
+
+
+// Redirect seller to dashboard if they land on home
+useEffect(() => {
+  if (user?.role === 'seller') navigate('/seller/dashboard');
+  if (user?.role === 'admin')  navigate('/admin/analytics');
+}, [user]);   
 
   // Load all products on mount
   useEffect(() => { fetchProducts(); }, []);

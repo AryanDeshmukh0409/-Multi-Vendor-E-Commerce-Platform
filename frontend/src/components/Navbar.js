@@ -10,42 +10,60 @@ export default function Navbar() {
     navigate('/login');
   };
 
+  // Redirect seller to dashboard if they land on home
+  const isSeller = user?.role === 'seller';
+  const isAdmin  = user?.role === 'admin';
+  const isBuyer  = user?.role === 'buyer';
+
   return (
     <nav style={styles.nav}>
-      <Link to="/" style={styles.brand}>🛒 MultiVendor</Link>
+      <Link to={isSeller ? '/seller/dashboard' : '/'} style={styles.brand}>
+        {isSeller ? '🏪' : '🛒'} MultiVendor
+      </Link>
 
       <div style={styles.links}>
-        <Link to="/" style={styles.link}>Home</Link>
 
-        {user?.role === 'buyer' && (
+        {/* Buyer links */}
+        {isBuyer && (
           <>
+            <Link to="/" style={styles.link}>Home</Link>
             <Link to="/orders" style={styles.link}>My Orders</Link>
             <Link to="/cart" style={styles.link}>Cart</Link>
           </>
         )}
 
-        {user?.role === 'seller' && (
+        {/* Seller links */}
+        {isSeller && (
           <>
             <Link to="/seller/dashboard" style={styles.link}>Dashboard</Link>
-            <Link to="/seller/products" style={styles.link}>Products</Link>
-            <Link to="/seller/orders" style={styles.link}>Orders</Link>
+            <Link to="/seller/products"  style={styles.link}>Products</Link>
+            <Link to="/seller/orders"    style={styles.link}>Orders</Link>
           </>
         )}
 
-        {user?.role === 'admin' && (
-          <Link to="/admin/analytics" style={styles.link}>Analytics</Link>
+        {/* Admin links */}
+        {isAdmin && (
+          <>
+            <Link to="/admin/analytics" style={styles.link}>Analytics</Link>
+          </>
         )}
 
-        {user ? (
-          <div style={styles.userSection}>
-            <span style={styles.userEmail}>{user.email}</span>
-            <button onClick={handleLogout} style={styles.logoutBtn}>Logout</button>
-          </div>
-        ) : (
+        {/* Not logged in */}
+        {!user && (
           <>
+            <Link to="/" style={styles.link}>Home</Link>
             <Link to="/login" style={styles.link}>Login</Link>
             <Link to="/register" style={styles.registerBtn}>Register</Link>
           </>
+        )}
+
+        {/* User info + logout */}
+        {user && (
+          <div style={styles.userSection}>
+            <span style={styles.roleBadge}>{user.role}</span>
+            <span style={styles.userEmail}>{user.email}</span>
+            <button onClick={handleLogout} style={styles.logoutBtn}>Logout</button>
+          </div>
         )}
       </div>
     </nav>
@@ -109,4 +127,14 @@ const styles = {
     cursor:          'pointer',
     fontSize:        '0.85rem',
   },
+
+  roleBadge: {
+  backgroundColor: '#e9456020',
+  border: '1px solid #e94560',
+  color: '#e94560',
+  padding: '0.2rem 0.6rem',
+  borderRadius: '20px',
+  fontSize: '0.75rem',
+  textTransform: 'capitalize',
+},
 };
