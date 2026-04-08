@@ -21,6 +21,23 @@ router.post('/internal/release', async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
+
+router.post('/internal/create-stock', async (req, res, next) => {
+  try {
+    const { productId, sellerId, storeId } = req.body;
+    const Inventory = require('../models/Inventory');
+
+    const existing = await Inventory.findOne({ productId });
+    if (existing) return res.json({ success: true, inventory: existing });
+
+    const inventory = await Inventory.create({
+      productId, sellerId, storeId,
+      quantity: 0, reserved: 0,
+    });
+    res.status(201).json({ success: true, inventory });
+  } catch (err) { next(err); }
+});
+
 // ── Authenticated routes ──
 router.get('/', requireAuth('inventory:write'), requireRole('seller'), ctrl.listMyInventory);
 router.get('/:productId', requireAuth('inventory:write'), ctrl.getStock);

@@ -4,29 +4,38 @@ const eventBus = require('../../shared/events/eventBus');
 
 // ── POST /catalog/products ───────────────────
 async function createProduct(req, res, next) {
+  try {
+    const sellerId = req.user.sub;
+    const storeId  = req.user.storeId;
+    if (!storeId) throw ApiError.forbidden('Register a store before listing products');
+
+    const { title, description, category, price, images, attributes } = req.body;
+    if (!title || !category || price == null)
+      throw ApiError.badRequest('title, category, and price are required');
+
+    const product = await Product.create({
+      sellerId, storeId, title, description, category,
+      price, images, attributes,
+    });
+
+    // Directly call inventory-service to create stock record
     try {
-        const sellerId = req.user.sub;
-        const storeId = req.user.storeId;
-        if (!storeId) throw ApiError.forbidden('Register a store before listing products');
+      const axios = require('axios');
+      await axios.post(
+        `${process.env.INVENTORY_SVC_URL}/internal/create-stock`,
+        {
+          productId: product._id.toString(),
+          sellerId:  sellerId.toString(),
+          storeId:   storeId.toString(),
+        },
+        { timeout: 3000 }
+      );
+    } catch (e) {
+      console.error('[catalog] Failed to create inventory record:', e.message);
+    }
 
-        const { title, description, category, price, images, attributes } = req.body;
-        if (!title || !category || price == null)
-            throw ApiError.badRequest('title, category, and price are required');
-
-        const product = await Product.create({
-            sellerId, storeId, title, description, category,
-            price, images, attributes,
-        });
-
-        // Inventory service subscribes to this event and creates a stock record
-        eventBus.publish('product.created', {
-            productId: product._id.toString(),
-            sellerId,
-            storeId: storeId.toString(),
-        });
-
-        res.status(201).json({ success: true, product });
-    } catch (err) { next(err); }
+    res.status(201).json({ success: true, product });
+  } catch (err) { next(err); }
 }
 
 // ── GET /catalog/products ────────────────────

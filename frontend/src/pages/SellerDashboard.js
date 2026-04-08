@@ -4,11 +4,11 @@ import { sellerAPI, analyticsAPI, orderAPI } from '../api/services';
 import { useAuth } from '../context/AuthContext';
 
 export default function SellerDashboard() {
-  const { user, token }       = useAuth();
-  const navigate              = useNavigate();
-  const [store, setStore]     = useState(null);
-  const [stats, setStats]     = useState(null);
-  const [orders, setOrders]   = useState([]);
+  const { user, token } = useAuth();
+  const navigate        = useNavigate();
+  const [store, setStore]   = useState(null);
+  const [stats, setStats]   = useState(null);
+  const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -17,21 +17,28 @@ export default function SellerDashboard() {
   }, [token]);
 
   const fetchAll = async () => {
-    try {
-      const [storeRes, statsRes, ordersRes] = await Promise.allSettled([
-        sellerAPI.getMyStore(token),
-        analyticsAPI.getSellerStats(token),
-        orderAPI.listOrders(token),
-      ]);
-      if (storeRes.status  === 'fulfilled') setStore(storeRes.value.data.store);
-      if (statsRes.status  === 'fulfilled') setStats(statsRes.value.data);
-      if (ordersRes.status === 'fulfilled') setOrders(ordersRes.value.data.orders || []);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
+  try {
+    const [storeRes, statsRes, ordersRes] = await Promise.allSettled([
+      sellerAPI.getMyStore(token),
+      analyticsAPI.getSellerStats(token),
+      orderAPI.listOrders(token),
+    ]);
+
+    if (storeRes.status === 'fulfilled') {
+      setStore(storeRes.value.data.store);
+    } else {
+      navigate('/seller/register-store');
+      return;
     }
-  };
+
+    if (statsRes.status  === 'fulfilled') setStats(statsRes.value.data);
+    if (ordersRes.status === 'fulfilled') setOrders(ordersRes.value.data.orders || []);
+  } catch (err) {
+    console.error(err);
+  } finally {
+    setLoading(false);
+  }
+};
 
   if (loading) return <div style={styles.loading}>Loading dashboard...</div>;
 
@@ -86,15 +93,7 @@ export default function SellerDashboard() {
               </h2>
             </div>
           </div>
-          <div style={styles.statCard}>
-            <div style={styles.statIcon}>🏪</div>
-            <div style={styles.statInfo}>
-              <p style={styles.statLabel}>Store Status</p>
-              <h2 style={{ ...styles.statValue, color: store?.isActive ? '#4ecca3' : '#e94560' }}>
-                {store?.isActive ? 'Active' : 'Inactive'}
-              </h2>
-            </div>
-          </div>
+
         </div>
 
         {/* Quick actions */}
@@ -184,11 +183,11 @@ const styles = {
   container: { maxWidth: '1200px', margin: '0 auto', padding: '2rem' },
   loading:   { color: '#aaa', textAlign: 'center', padding: '4rem', backgroundColor: '#0a0a1a' },
 
-  header:     { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' },
-  title:      { color: '#fff', fontSize: '1.8rem', margin: '0 0 0.3rem' },
-  storeName:  { color: '#4ecca3', margin: 0 },
-  headerBtns: { display: 'flex', gap: '1rem' },
-  primaryBtn: { padding: '0.7rem 1.5rem', backgroundColor: '#e94560', border: 'none', color: '#fff', borderRadius: '10px', cursor: 'pointer', fontSize: '0.95rem' },
+  header:      { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' },
+  title:       { color: '#fff', fontSize: '1.8rem', margin: '0 0 0.3rem' },
+  storeName:   { color: '#4ecca3', margin: 0 },
+  headerBtns:  { display: 'flex', gap: '1rem' },
+  primaryBtn:  { padding: '0.7rem 1.5rem', backgroundColor: '#e94560', border: 'none', color: '#fff', borderRadius: '10px', cursor: 'pointer', fontSize: '0.95rem' },
   secondaryBtn:{ padding: '0.7rem 1.5rem', backgroundColor: 'transparent', border: '1px solid #4ecca3', color: '#4ecca3', borderRadius: '10px', cursor: 'pointer', fontSize: '0.95rem' },
 
   statsGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '2rem' },

@@ -10,7 +10,7 @@ const SHIPPING_URL  = 'http://localhost:4007';
 const REVIEW_URL    = 'http://localhost:4008';
 const SELLER_URL    = 'http://localhost:4002';
 const INVENTORY_URL = 'http://localhost:4004';
-const ANALYTICS_URL = 'http://localhost:4011';
+const ANALYTICS_URL = 'http://localhost:4011/analytics';
 
 // ── Helper ────────────────────────────────────
 const authHeader = token => ({ headers: { Authorization: `Bearer ${token}` } });
@@ -28,6 +28,7 @@ export const catalogAPI = {
   createProduct:  (data, token)  => axios.post(`${CATALOG_URL}/products`, data, authHeader(token)),
   updateProduct:  (id, data, token) => axios.put(`${CATALOG_URL}/products/${id}`, data, authHeader(token)),
   deleteProduct:  (id, token)    => axios.delete(`${CATALOG_URL}/products/${id}`, authHeader(token)),
+  updateStore: (data, token) => axios.patch(`${SELLER_URL}/me`, data, authHeader(token)),
 };
 
 // ── Search ────────────────────────────────────

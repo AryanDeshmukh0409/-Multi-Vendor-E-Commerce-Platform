@@ -12,6 +12,11 @@ export default function SellerProducts() {
   const [editProduct, setEditProduct] = useState(null);
   const [error, setError]       = useState('');
   const [success, setSuccess]   = useState('');
+  
+// 1. Add these state variables at the top of the component (after existing useState calls):
+const [stockProductId, setStockProductId] = useState(null);
+const [stockQty, setStockQty]             = useState('');
+const [stockLoading, setStockLoading]     = useState(false);
 
   const [form, setForm] = useState({
     title: '', description: '', category: 'electronics',
@@ -93,6 +98,26 @@ export default function SellerProducts() {
       setError('Failed to delete product');
     }
   };
+    
+
+const handleSetStock = async (productId) => {
+  if (!stockQty || isNaN(stockQty) || Number(stockQty) < 0) {
+    setError('Please enter a valid quantity');
+    return;
+  }
+  setStockLoading(true);
+  try {
+    await inventoryAPI.setStock(productId, { quantity: Number(stockQty) }, token);
+    setSuccess(`✅ Stock updated to ${stockQty} units!`);
+    setStockProductId(null);
+    setStockQty('');
+    setTimeout(() => setSuccess(''), 3000);
+  } catch (err) {
+    setError(err.response?.data?.error?.message || 'Failed to update stock');
+  } finally {
+    setStockLoading(false);
+  }
+};
 
   const resetForm = () => setForm({ title: '', description: '', category: 'electronics', price: '', images: '', color: '', weight: '' });
 
@@ -190,10 +215,49 @@ export default function SellerProducts() {
                     {product.status}
                   </span>
                 </div>
+
                 <div style={styles.productActions}>
-                  <button onClick={() => handleEdit(product)} style={styles.editBtn}>✏️ Edit</button>
-                  <button onClick={() => handleDelete(product._id)} style={styles.deleteBtn}>🗑️ Delete</button>
-                </div>
+  <button onClick={() => handleEdit(product)} style={styles.editBtn}>✏️ Edit</button>
+  <button
+    onClick={() => {
+      setStockProductId(stockProductId === product._id ? null : product._id);
+      setStockQty('');
+    }}
+    style={styles.stockBtn}
+  >
+    📦 Stock
+  </button>
+  <button onClick={() => handleDelete(product._id)} style={styles.deleteBtn}>🗑️ Delete</button>
+</div>
+
+{stockProductId === product._id && (
+  <div style={styles.stockForm}>
+    <span style={styles.stockLabel}>Set Stock Quantity:</span>
+    <input
+      type="number"
+      min="0"
+      value={stockQty}
+      onChange={e => setStockQty(e.target.value)}
+      style={styles.stockInput}
+      placeholder="e.g. 100"
+      autoFocus
+    />
+    <button
+      onClick={() => handleSetStock(product._id)}
+      style={styles.stockConfirmBtn}
+      disabled={stockLoading}
+    >
+      {stockLoading ? '...' : '✅ Save'}
+    </button>
+    <button
+      onClick={() => setStockProductId(null)}
+      style={styles.stockCancelBtn}
+    >
+      Cancel
+    </button>
+  </div>
+)}
+
               </div>
             ))}
           </div>
@@ -246,4 +310,33 @@ const styles = {
   productActions:{ display: 'flex', gap: '0.5rem', flexDirection: 'column' },
   editBtn:      { padding: '0.4rem 0.8rem', backgroundColor: '#0f3460', border: '1px solid #1a4a8a', color: '#fff', borderRadius: '6px', cursor: 'pointer', fontSize: '0.8rem' },
   deleteBtn:    { padding: '0.4rem 0.8rem', backgroundColor: 'transparent', border: '1px solid #e94560', color: '#e94560', borderRadius: '6px', cursor: 'pointer', fontSize: '0.8rem' },
+
+
+stockBtn: {
+  padding: '0.4rem 0.8rem', backgroundColor: 'transparent',
+  border: '1px solid #4ecca3', color: '#4ecca3',
+  borderRadius: '6px', cursor: 'pointer', fontSize: '0.8rem',
+},
+stockForm: {
+  width: '100%', display: 'flex', alignItems: 'center',
+  gap: '0.8rem', padding: '0.8rem 1rem',
+  backgroundColor: '#0f3460', borderRadius: '8px',
+  marginTop: '0.5rem', flexWrap: 'wrap',
+},
+stockLabel:      { color: '#aaa', fontSize: '0.85rem' },
+stockInput: {
+  padding: '0.5rem', borderRadius: '6px', width: '100px',
+  backgroundColor: '#16213e', border: '1px solid #1a4a8a',
+  color: '#fff', fontSize: '0.9rem',
+},
+stockConfirmBtn: {
+  padding: '0.5rem 1rem', backgroundColor: '#4ecca3',
+  border: 'none', color: '#000', borderRadius: '6px',
+  cursor: 'pointer', fontWeight: 'bold', fontSize: '0.85rem',
+},
+stockCancelBtn: {
+  padding: '0.5rem 0.8rem', backgroundColor: 'transparent',
+  border: '1px solid #aaa', color: '#aaa',
+  borderRadius: '6px', cursor: 'pointer', fontSize: '0.85rem',
+},
 };

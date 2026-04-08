@@ -3,7 +3,7 @@ const bcrypt = require('bcrypt');
 
 const ROLE_SCOPES = {
     buyer: ['catalog:read', 'orders:create', 'orders:read', 'reviews:write', 'messages:read', 'messages:write'],
-    seller: ['catalog:write', 'inventory:write', 'orders:fulfil', 'shipping:write', 'analytics:read'],
+    seller: ['catalog:write', 'inventory:write', 'orders:fulfil', 'shipping:write', 'analytics:read', 'orders:read'],
     admin: ['orders:*', 'sellers:*', 'payments:*', 'reviews:moderate', 'analytics:*'],
 };
 

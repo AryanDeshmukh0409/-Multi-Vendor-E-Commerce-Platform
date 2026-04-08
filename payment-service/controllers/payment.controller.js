@@ -156,11 +156,14 @@ async function capturePayment(req, res, next) {
     await payment.save();
 
     // Advance order to paid using internal endpoint
-   await notify('patch', `${ORDER_SVC}/internal/orders/${orderId}/status`, {
+ await notify('patch', `${ORDER_SVC}/internal/orders/${orderId}/status`, {
   status: 'paid',
   note:   'Payment confirmed',
 });
-
+await notify('patch', `${ORDER_SVC}/internal/orders/${orderId}/status`, {
+  status: 'processing',
+  note:   'Order being processed',
+});
     res.json({ success: true, payment });
   } catch (err) { next(err); }
 }

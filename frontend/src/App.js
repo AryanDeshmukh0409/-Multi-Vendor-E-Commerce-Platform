@@ -10,6 +10,8 @@ import Orders from './pages/Orders';
 import SellerDashboard from './pages/SellerDashboard';
 import SellerProducts from './pages/SellerProducts';
 import SellerOrders from './pages/SellerOrders';
+import RegisterStore from './pages/RegisterStore';
+import AdminAnalytics from './pages/AdminAnalytics';
 
 function App() {
   return (
@@ -26,6 +28,8 @@ function App() {
           <Route path="/seller/dashboard" element={<SellerDashboard />} />
           <Route path="/seller/products"  element={<SellerProducts />} />
           <Route path="/seller/orders"    element={<SellerOrders />} />
+          <Route path="/seller/register-store" element={<RegisterStore />} />
+          <Route path="/admin/analytics" element={<AdminAnalytics />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

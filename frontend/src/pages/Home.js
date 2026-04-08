@@ -60,16 +60,19 @@ useEffect(() => {
   };
 
   const handleAddToCart = (product) => {
-    setCart(prev => {
-      const exists = prev.find(i => i._id === product._id);
-      if (exists) {
-        return prev.map(i => i._id === product._id ? { ...i, qty: i.qty + 1 } : i);
-      }
-      return [...prev, { ...product, qty: 1 }];
-    });
-    setCartMsg(`✅ ${product.title} added to cart!`);
-    setTimeout(() => setCartMsg(''), 2000);
-  };
+  const saved = JSON.parse(localStorage.getItem('cart') || '[]');
+  const exists = saved.find(i => i._id === product._id);
+  let updated;
+  if (exists) {
+    updated = saved.map(i => i._id === product._id ? { ...i, qty: i.qty + 1 } : i);
+  } else {
+    updated = [...saved, { ...product, qty: 1 }];
+  }
+  localStorage.setItem('cart', JSON.stringify(updated));
+  setCart(updated);
+  setCartMsg(`✅ ${product.title} added to cart!`);
+  setTimeout(() => setCartMsg(''), 2000);
+};
 
   const categories = ['electronics', 'clothing', 'books', 'home', 'sports', 'beauty'];
 

@@ -16,41 +16,46 @@ async function register(req, res, next) {
 }
 
 async function login(req, res, next) {
-    try {
-        const { email, password } = req.body;
-        const user = await User.findOne({ email: email?.toLowerCase() });
-        if (!user || !(await user.comparePassword(password)))
-            throw ApiError.unauthorized('Invalid credentials');
+  try {
+    const { email, password } = req.body;
+    const user = await User.findOne({ email: email?.toLowerCase() });
+    if (!user || !(await user.comparePassword(password)))
+      throw ApiError.unauthorized('Invalid credentials');
 
-        // For sellers, fetch storeId from seller-service
-        if (user.role === 'seller' && !user.storeId) {
-            try {
-                const axios = require('axios');
-                const response = await axios.get(
-                    `${process.env.SELLER_SVC_URL}/me`,
-                    { headers: { Authorization: `Bearer ${tokenSvc.signAccess(user)}` } }
-                );
-                if (response.data?.store?._id) {
-                    user.storeId = response.data.store._id;
-                    await user.save();
-                }
-            } catch (e) {
-                // store not found yet — that's ok
-            }
+    // For sellers without storeId, try to fetch it from seller-service
+    if (user.role === 'seller' && !user.storeId) {
+      try {
+        const axios = require('axios');
+        const tempToken = tokenSvc.signAccess(user);
+        const response = await axios.get(
+          `${process.env.SELLER_SVC_URL}/me`,
+          { 
+            headers: { Authorization: `Bearer ${tempToken}` },
+            timeout: 3000
+          }
+        );
+        if (response.data?.store?._id) {
+          user.storeId = response.data.store._id;
+          await user.save();
         }
+      } catch (e) {
+        // Store not found yet — continue without storeId
+        console.log('[auth] No store found for seller, continuing without storeId');
+      }
+    }
 
-        const accessToken = tokenSvc.signAccess(user);
-        const refreshToken = await tokenSvc.issueRefresh(user._id);
+    const accessToken  = tokenSvc.signAccess(user);
+    const refreshToken = await tokenSvc.issueRefresh(user._id);
 
-        res.json({
-            success: true,
-            access_token: accessToken,
-            refresh_token: refreshToken,
-            token_type: 'Bearer',
-            role: user.role,
-            userId: user._id,
-        });
-    } catch (err) { next(err); }
+    res.json({
+      success:       true,
+      access_token:  accessToken,
+      refresh_token: refreshToken,
+      token_type:    'Bearer',
+      role:          user.role,
+      userId:        user._id,
+    });
+  } catch (err) { next(err); }
 }
 // ── GET /auth/authorize ──────────────────────
 // Simulates an OAuth2 authorization endpoint.
