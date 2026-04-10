@@ -1,4 +1,4 @@
-const { OrderSummary, AnalyticsEvent } = require('../models/AnalyticsEvent');
+const { OrderSummary, AnalyticsEvent } = require('../models/AnalyticsEvent'); 
 const ApiError = require('../../shared/utils/apiError');
 const axios    = require('axios');
 
