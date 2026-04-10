@@ -87,4 +87,5 @@ export const analyticsAPI = {
   getSellerStats: (token) => axios.get(`${ANALYTICS_URL}/seller/me`, authHeader(token)),
   getRevenue:     (token) => axios.get(`${ANALYTICS_URL}/revenue`, authHeader(token)),
   getTopProducts: (token) => axios.get(`${ANALYTICS_URL}/top-products`, authHeader(token)),
+  getTopSellers:  (token) => axios.get(`${ANALYTICS_URL}/top-sellers`, authHeader(token)),
 };
