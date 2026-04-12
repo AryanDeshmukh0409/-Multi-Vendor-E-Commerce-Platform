@@ -29,6 +29,8 @@ export default function Navbar() {
             <Link to="/" style={styles.link}>Home</Link>
             <Link to="/orders" style={styles.link}>My Orders</Link>
             <Link to="/cart" style={styles.link}>Cart</Link>
+            <Link to="/cart" style={styles.link}>Cart</Link>
+<Link to="/chat" style={styles.link}>💬 Chat</Link>
           </>
         )}
 

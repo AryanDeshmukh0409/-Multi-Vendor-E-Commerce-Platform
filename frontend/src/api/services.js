@@ -11,6 +11,15 @@ const REVIEW_URL    = 'http://localhost:4008';
 const SELLER_URL    = 'http://localhost:4002';
 const INVENTORY_URL = 'http://localhost:4004';
 const ANALYTICS_URL = 'http://localhost:4011/analytics';
+const CHAT_URL = 'http://localhost:4013/chat';
+
+
+export const chatAPI = {
+  send:           (data, token)  => axios.post(`${CHAT_URL}/send`, data, authHeader(token)),
+  getSessions:    (token)        => axios.get(`${CHAT_URL}/sessions`, authHeader(token)),
+  getSession:     (id, token)    => axios.get(`${CHAT_URL}/sessions/${id}`, authHeader(token)),
+  deleteSession:  (id, token)    => axios.delete(`${CHAT_URL}/sessions/${id}`, authHeader(token)),
+};
 
 // ── Helper ────────────────────────────────────
 const authHeader = token => ({ headers: { Authorization: `Bearer ${token}` } });

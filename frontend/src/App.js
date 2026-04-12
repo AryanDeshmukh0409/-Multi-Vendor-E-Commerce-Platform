@@ -12,6 +12,7 @@ import SellerProducts from './pages/SellerProducts';
 import SellerOrders from './pages/SellerOrders';
 import RegisterStore from './pages/RegisterStore';
 import AdminAnalytics from './pages/AdminAnalytics';
+import Chat from './pages/Chat';
 
 function App() {
   return (
@@ -30,6 +31,7 @@ function App() {
           <Route path="/seller/orders"    element={<SellerOrders />} />
           <Route path="/seller/register-store" element={<RegisterStore />} />
           <Route path="/admin/analytics" element={<AdminAnalytics />} />
+          <Route path="/chat" element={<Chat />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>
