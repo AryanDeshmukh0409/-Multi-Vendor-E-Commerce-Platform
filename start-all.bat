@@ -13,6 +13,8 @@ start "messaging-service" cmd /k "cd messaging-service && node index.js"
 start "search-service" cmd /k "cd search-service && node index.js"
 start "analytics-service" cmd /k "cd analytics-service && node index.js"
 start "notification-service" cmd /k "cd notification-service && node index.js"
+start "chat-service" cmd /k "cd chat-service && node index.js"
 start "api-gateway" cmd /k "cd api-gateway && node index.js"
+
 
 echo All services started!

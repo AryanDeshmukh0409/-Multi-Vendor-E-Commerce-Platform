@@ -1,16 +1,36 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState } from 'react';
 
 const AuthContext = createContext(null);
 
-export function AuthProvider({ children }) {
- const [user, setUser]   = useState(() => {
-  const saved = localStorage.getItem('user');
-  return saved ? JSON.parse(saved) : null;
-});
-const [token, setToken] = useState(() => localStorage.getItem('token'));
+function isTokenExpired(token) {
+  if (!token) return true;
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    return payload.exp * 1000 < Date.now();
+  } catch (e) {
+    return true;
+  }
+}
 
-  // Load from localStorage on startup
-  
+export function AuthProvider({ children }) {
+  const [user, setUser] = useState(() => {
+    const savedToken = localStorage.getItem('token');
+    const savedUser = localStorage.getItem('user');
+    if (savedToken && savedUser && !isTokenExpired(savedToken)) {
+      return JSON.parse(savedUser);
+    }
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    return null;
+  });
+
+  const [token, setToken] = useState(() => {
+    const savedToken = localStorage.getItem('token');
+    if (savedToken && !isTokenExpired(savedToken)) {
+      return savedToken;
+    }
+    return null;
+  });
 
   const login = (userData, accessToken) => {
     setToken(accessToken);
